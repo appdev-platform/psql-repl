@@ -37,6 +37,10 @@ EOF
     # Create fresh directory and perform base backup
     echo "Creating fresh PGDATA directory..."
     mkdir -p "${PGDATA}"
+
+    # Set permissions
+    echo "Setting directory permissions..."
+    chmod 700 "${PGDATA}"
     
     echo "=== Replica preparation completed successfully ==="
 else
