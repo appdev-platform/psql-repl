@@ -21,46 +21,6 @@ if [ "${IS_PRIMARY}" = "false" ] && [ ! -f "${PGDATA}/standby.signal" ]; then
     echo "Primary host: ${POSTGRESQL_PRIMARY_HOST}"
     echo "Replication user: ${POSTGRESQL_REPLICATION_USER}"
     
-    # Create password file for pg_basebackup
-    echo "Creating temporary password file..."
-    export PGPASSFILE=$(mktemp)
-    echo "${POSTGRESQL_PRIMARY_HOST}:5432:*:${POSTGRESQL_REPLICATION_USER}:${POSTGRESQL_REPLICATION_PASSWORD}" > "$PGPASSFILE"
-    chmod 600 "$PGPASSFILE"
-    
-    # Stop PostgreSQL if running
-    if pg_ctl status -D ${PGDATA} > /dev/null 2>&1; then
-        echo "Stopping PostgreSQL server..."
-        pg_ctl -D ${PGDATA} -m fast -w stop || true
-        echo "PostgreSQL server stopped"
-    fi
-    
-    # Backup existing data directory if it exists
-    if [ -d "${PGDATA}" ]; then
-        BACKUP_DIR="${PGDATA}.bak.$(date +%Y%m%d_%H%M%S)"
-        echo "Backing up existing data directory to ${BACKUP_DIR}..."
-        mv "${PGDATA}" "${BACKUP_DIR}"
-        echo "Backup completed"
-    fi
-    
-    # Create fresh directory and perform base backup
-    echo "Creating fresh PGDATA directory..."
-    mkdir -p "${PGDATA}"
-    
-    echo "Starting base backup from primary..."
-    echo "Using primary host: ${POSTGRESQL_PRIMARY_HOST}"
-    echo "Using replication user: ${POSTGRESQL_REPLICATION_USER}"
-    
-    pg_basebackup -h ${POSTGRESQL_PRIMARY_HOST} \
-                 -D ${PGDATA} \
-                 -U ${POSTGRESQL_REPLICATION_USER} \
-                 -P -v -R \
-                 -X stream \
-                 -S replica_1_slot
-    
-    # Clean up password file
-    rm -f "$PGPASSFILE"
-    
-    echo "Base backup completed successfully"
     
     # Configure streaming replication
     echo "Configuring streaming replication..."
@@ -74,9 +34,6 @@ EOF
     echo "Creating standby.signal file..."
     touch "${PGDATA}/standby.signal"
     
-    # Set permissions
-    echo "Setting directory permissions..."
-    chmod 700 "${PGDATA}"
     
     echo "=== Replica preparation completed successfully ==="
 else
