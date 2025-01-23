@@ -21,7 +21,6 @@ if [ "${IS_PRIMARY}" = "false" ] && [ ! -f "${PGDATA}/standby.signal" ]; then
     echo "Primary host: ${POSTGRESQL_PRIMARY_HOST}"
     echo "Replication user: ${POSTGRESQL_REPLICATION_USER}"
     
-    
     # Configure streaming replication
     echo "Configuring streaming replication..."
     cat >> "${PGDATA}/postgresql.auto.conf" << EOF
@@ -33,11 +32,7 @@ EOF
     # Create standby signal file
     echo "Creating standby.signal file..."
     touch "${PGDATA}/standby.signal"
-
-    # Create fresh directory and perform base backup
-    echo "Creating fresh PGDATA directory..."
-    mkdir -p "${PGDATA}"
-
+    
     # Set permissions
     echo "Setting directory permissions..."
     chmod 700 "${PGDATA}"
