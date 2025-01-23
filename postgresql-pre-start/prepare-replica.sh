@@ -33,7 +33,10 @@ EOF
     # Create standby signal file
     echo "Creating standby.signal file..."
     touch "${PGDATA}/standby.signal"
-    
+
+    # Create fresh directory and perform base backup
+    echo "Creating fresh PGDATA directory..."
+    mkdir -p "${PGDATA}"
     
     echo "=== Replica preparation completed successfully ==="
 else
