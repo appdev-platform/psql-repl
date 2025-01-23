@@ -66,7 +66,7 @@ oc wait --for=condition=available deployment/postgres-replica --timeout=120s
 ### Create Test Data Function
 ```bash
 # Create test table and function on primary
-oc rsh deployment/postgres-primary psql -U postgres -d mydatabase -c "
+oc rsh deployment/postgres-primary psql -d mydatabase -c "
 -- Create table if not exists
 CREATE TABLE IF NOT EXISTS sample_table (
     id SERIAL PRIMARY KEY,
@@ -86,41 +86,41 @@ END;
 \$\$ LANGUAGE plpgsql;"
 
 # Generate test data
-oc rsh deployment/postgres-primary psql -U postgres -d mydatabase -c "SELECT add_sample_data();"
+oc rsh deployment/postgres-primary psql -d mydatabase -c "SELECT add_sample_data();"
 
 # Verify data on primary
-oc rsh deployment/postgres-primary psql -U postgres -d mydatabase -c "SELECT count(*) FROM sample_table;"
+oc rsh deployment/postgres-primary psql -d mydatabase -c "SELECT count(*) FROM sample_table;"
 
 # Verify data on replica
-oc rsh deployment/postgres-replica psql -U postgres -d mydatabase -c "SELECT count(*) FROM sample_table;"
+oc rsh deployment/postgres-replica psql -d mydatabase -c "SELECT count(*) FROM sample_table;"
 ```
 
 ### Test Replication with New Data
 ```bash
 # Add more data on primary
-oc rsh deployment/postgres-primary psql -U postgres -d mydatabase -c "SELECT add_sample_data(500);"
+oc rsh deployment/postgres-primary psql -d mydatabase -c "SELECT add_sample_data(500);"
 
 # Check counts on both servers
 echo "Primary count:"
-oc rsh deployment/postgres-primary psql -U postgres -d mydatabase -c "SELECT count(*) FROM sample_table;"
+oc rsh deployment/postgres-primary psql -d mydatabase -c "SELECT count(*) FROM sample_table;"
 echo "Replica count:"
-oc rsh deployment/postgres-replica psql -U postgres -d mydatabase -c "SELECT count(*) FROM sample_table;"
+oc rsh deployment/postgres-replica psql -d mydatabase -c "SELECT count(*) FROM sample_table;"
 ```
 
 ### Check Replication Status
 ```bash
 # On primary
-oc rsh deployment/postgres-primary psql -U postgres -c "SELECT application_name, state, sync_state FROM pg_stat_replication;"
-oc rsh deployment/postgres-primary psql -U postgres -c "SELECT slot_name, active FROM pg_replication_slots;"
+oc rsh deployment/postgres-primary psql -c "SELECT application_name, state, sync_state FROM pg_stat_replication;"
+oc rsh deployment/postgres-primary psql -c "SELECT slot_name, active FROM pg_replication_slots;"
 
 # On replica
-oc rsh deployment/postgres-replica psql -U postgres -c "SELECT pg_is_in_recovery();"
+oc rsh deployment/postgres-replica psql -c "SELECT pg_is_in_recovery();"
 ```
 
 ### Check Replication Lag
 ```bash
 # On replica
-oc rsh deployment/postgres-replica psql -U postgres -c "SELECT now() - pg_last_xact_replay_timestamp() AS replication_lag;"
+oc rsh deployment/postgres-replica psql -c "SELECT now() - pg_last_xact_replay_timestamp() AS replication_lag;"
 ```
 
 ## Failover Procedures
@@ -130,13 +130,13 @@ oc rsh deployment/postgres-replica psql -U postgres -c "SELECT now() - pg_last_x
 1. **Promote replica to primary:**
 ```bash
 # Verify replica is ready
-oc rsh deployment/postgres-replica psql -U postgres -c "SELECT pg_is_in_recovery();"
+oc rsh deployment/postgres-replica psql -c "SELECT pg_is_in_recovery();"
 
 # Promote replica
 oc rsh deployment/postgres-replica pg_ctl promote -D /var/lib/pgsql/data/userdata
 
 # Verify promotion succeeded
-oc rsh deployment/postgres-replica psql -U postgres -c "SELECT pg_is_in_recovery();"  # Should return 'f'
+oc rsh deployment/postgres-replica psql -c "SELECT pg_is_in_recovery();"  # Should return 'f'
 ```
 
 2. **Clean up failed primary :**
@@ -150,11 +150,11 @@ oc delete all -l app=postgres-primary
 1. **Set current primary (former replica) to read-only:**
 ```bash
 # Set database to read-only mode
-oc rsh deployment/postgres-replica psql -U postgres -c "ALTER SYSTEM SET default_transaction_read_only = on;"
-oc rsh deployment/postgres-replica psql -U postgres -c "SELECT pg_reload_conf();"
+oc rsh deployment/postgres-replica psql -c "ALTER SYSTEM SET default_transaction_read_only = on;"
+oc rsh deployment/postgres-replica psql -c "SELECT pg_reload_conf();"
 
 # Verify read-only status
-oc rsh deployment/postgres-replica psql -U postgres -c "SHOW default_transaction_read_only;"  # Should return 'on'
+oc rsh deployment/postgres-replica psql -c "SHOW default_transaction_read_only;"  # Should return 'on'
 ```
 
 2. **Deploy new primary using replica's data:**
@@ -229,7 +229,7 @@ oc logs deployment/postgres-replica
 # On primary
 oc rsh deployment/postgres-primary
 cat $PGDATA/pg_hba.conf | grep replication
-psql -U postgres -c "SELECT * FROM pg_replication_slots;"
+psql -c "SELECT * FROM pg_replication_slots;"
 
 # On replica
 oc rsh deployment/postgres-replica
