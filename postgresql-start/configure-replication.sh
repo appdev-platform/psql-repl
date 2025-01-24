@@ -35,11 +35,16 @@ configure_primary() {
 configure_replica() {
     log "=== Configuring replica node ==="
     
-    # Setup replication configuration
+    # Get primary's system identifier
+    PRIMARY_SYSTEM_ID=$(psql -h ${POSTGRESQL_PRIMARY_HOST} -U ${POSTGRESQL_REPLICATION_USER} -d postgres -tAc "SELECT system_identifier FROM pg_control_system()")
+    log "Primary system identifier: ${PRIMARY_SYSTEM_ID}"
+    
+    # Set up replication configuration
     touch "${PGDATA}/standby.signal"
     cat > "${PGDATA}/postgresql.auto.conf" << EOF
 primary_conninfo = 'host=${POSTGRESQL_PRIMARY_HOST} port=5432 user=${POSTGRESQL_REPLICATION_USER} password=${POSTGRESQL_REPLICATION_PASSWORD} application_name=replica_1'
 primary_slot_name = 'replica_1_slot'
+system_identifier = '${PRIMARY_SYSTEM_ID}'
 EOF
     
     log "Replica configuration completed"
