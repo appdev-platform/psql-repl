@@ -79,13 +79,13 @@ create-test-data:
 
 # Clean up primary
 clean-primary:
+	oc delete pvc $$(oc get deployment $(PRIMARY_NAME) -o jsonpath='{.spec.template.spec.volumes[*].persistentVolumeClaim.claimName}') --wait=false
 	oc delete all -l app=$(PRIMARY_NAME)
-	oc delete pvc $$(oc get deployment $(PRIMARY_NAME) -o jsonpath='{.spec.template.spec.volumes[*].persistentVolumeClaim.claimName}')
 
 # Clean up replica
 clean-replica:
+	oc delete pvc $$(oc get deployment $(REPLICA_NAME) -o jsonpath='{.spec.template.spec.volumes[*].persistentVolumeClaim.claimName}') --wait=false
 	oc delete all -l app=$(REPLICA_NAME)
-	oc delete pvc $$(oc get deployment $(REPLICA_NAME) -o jsonpath='{.spec.template.spec.volumes[*].persistentVolumeClaim.claimName}')
 
 # Clean everything
 clean-all: clean-primary clean-replica
