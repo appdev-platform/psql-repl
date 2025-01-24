@@ -22,12 +22,12 @@ if [ "${IS_PRIMARY}" = "false" ]; then
     echo "Replication user: ${POSTGRESQL_REPLICATION_USER}"
     
     # Configure streaming replication
-    echo "Configuring streaming replication..."
-    cat >> "${PGDATA}/postgresql.auto.conf" << EOF
-primary_conninfo = 'host=${POSTGRESQL_PRIMARY_HOST} port=5432 user=${POSTGRESQL_REPLICATION_USER} password=${POSTGRESQL_REPLICATION_PASSWORD} application_name=replica_1'
-primary_slot_name = 'replica_1_slot'
-EOF
-    echo "Streaming replication configured"
+    #echo "Configuring streaming replication..."
+    #cat >> "${PGDATA}/postgresql.auto.conf" << EOF
+    #primary_conninfo = 'host=${POSTGRESQL_PRIMARY_HOST} port=5432 user=${POSTGRESQL_REPLICATION_USER} password=${POSTGRESQL_REPLICATION_PASSWORD} application_name=replica_1'
+    #primary_slot_name = 'replica_1_slot'
+    #EOF
+    #echo "Streaming replication configured"
     
     echo "=== Replica preparation completed successfully ==="
 else
