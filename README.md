@@ -47,7 +47,7 @@ oc new-app registry.redhat.io/rhel9/postgresql-16~https://github.com/fjcloud/psq
   -e POSTGRESQL_PRIMARY_HOST=postgres-primary \
   -e IS_PRIMARY=false \
   -e POSTGRESQL_MIGRATION_REMOTE_HOST=postgres-primary \
-  -e POSTGRESQL_MIGRATION_ADMIN_PASSWORD=adminpassword \
+  -e POSTGRESQL_MIGRATION_ADMIN_PASSWORD=mypassword \
   -e POSTGRESQL_MIGRATION_IGNORE_ERRORS=yes
 
 # Create and attach PVC to replica
