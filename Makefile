@@ -4,7 +4,6 @@
 PROJECT ?= psql-repl
 PRIMARY_NAME = postgres-primary
 REPLICA_NAME = postgres-replica
-POSTGREST_NAME = postgrest
 
 # Database settings
 DB_USER = myuser
@@ -49,17 +48,8 @@ deploy-replica:
 		--claim-size=10Gi \
 		--mount-path=/var/lib/pgsql/data
 
-# Deploy PostgREST
-deploy-postgrest:
-	oc new-app docker.io/postgrest/postgrest \
-		-e PGRST_DB_URI="postgres://$(DB_USER):$(DB_PASSWORD)@$(REPLICA_NAME),$(PRIMARY_NAME)/$(DB_NAME)?target_session_attrs=read-only" \
-		-e PGRST_DB_ANON_ROLE="web_anon" \
-		-e PGRST_DB_SCHEMA="public" \
-		-e PGRST_OPENAPI_SERVER_PROXY_URI=http://0.0.0.0:3000
-	oc create route edge --service=$(POSTGREST_NAME)
-
 # Deploy all components
-deploy-all: deploy-primary deploy-replica deploy-postgrest
+deploy-all: deploy-primary deploy-replica
 
 # Promote replica to primary
 promote-replica:
@@ -97,19 +87,14 @@ clean-replica:
 	oc delete all -l app=$(REPLICA_NAME)
 	oc delete pvc $$(oc get deployment $(REPLICA_NAME) -o jsonpath='{.spec.template.spec.volumes[*].persistentVolumeClaim.claimName}')
 
-# Clean up PostgREST
-clean-postgrest:
-	oc delete all -l app=$(POSTGREST_NAME)
-
 # Clean everything
-clean-all: clean-primary clean-replica clean-postgrest
+clean-all: clean-primary clean-replica
 
 # Show help
 help:
 	@echo "Available targets:"
 	@echo "  deploy-primary    - Deploy primary PostgreSQL instance"
 	@echo "  deploy-replica    - Deploy replica PostgreSQL instance"
-	@echo "  deploy-postgrest  - Deploy PostgREST API"
 	@echo "  deploy-all       - Deploy all components"
 	@echo "  promote-replica   - Promote replica to primary"
 	@echo "  set-readonly     - Set replica to read-only mode"
@@ -117,7 +102,6 @@ help:
 	@echo "  create-test-data - Create test table and data"
 	@echo "  clean-primary    - Remove primary instance"
 	@echo "  clean-replica    - Remove replica instance"
-	@echo "  clean-postgrest  - Remove PostgREST"
 	@echo "  clean-all       - Remove all components"
 
-.PHONY: deploy-primary deploy-replica deploy-postgrest deploy-all promote-replica set-readonly verify create-test-data clean-primary clean-replica clean-postgrest clean-all help 
+.PHONY: deploy-primary deploy-replica deploy-all promote-replica set-readonly verify create-test-data clean-primary clean-replica clean-all help 
