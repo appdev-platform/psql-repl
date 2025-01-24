@@ -111,10 +111,6 @@ oc delete all -l app=postgrest
 
 This document describes how to set up PostgREST with the PostgreSQL replication configuration.
 
-## Basic Setup
-
-[Basic setup instructions remain here...]
-
 ## Kubernetes OAuth Integration
 
 PostgREST can be configured to work with Kubernetes OAuth for authentication and authorization. This setup allows using Kubernetes service accounts to control access to the PostgreSQL database through PostgREST.
@@ -197,4 +193,9 @@ curl -k "https://${POSTGREST_HOST}/sample_table" \
 5. PostgREST connects to PostgreSQL assuming the matching role
 6. PostgreSQL permissions are enforced based on the role grants
 
-This setup provides secure, OAuth-based authentication while maintaining PostgreSQL's role-based access control. 
+This setup provides secure, OAuth-based authentication while maintaining PostgreSQL's role-based access control.
+
+## References
+
+- [PostgREST Documentation](https://postgrest.org/)
+- [PostgreSQL Connection URIs](https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING) 
