@@ -8,19 +8,19 @@ PostgREST can be configured to work with Kubernetes OAuth for authentication and
 
 ### 1. Database Role Setup
 
-First, create a PostgreSQL role that matches your service account name:
+First, create a PostgreSQL role that matches your service account's full name from the `sub` claim:
 
 ```bash
 # Connect to primary and create the database role
 oc rsh deployment/postgres-primary psql -U postgres -d mydatabase -c "
-CREATE ROLE dbreader NOLOGIN;
-GRANT USAGE ON SCHEMA public TO dbreader;
-GRANT SELECT ON ALL TABLES IN SCHEMA public TO dbreader;
-GRANT dbreader TO myuser;
+CREATE ROLE \"system:serviceaccount:psql-repl:dbreader\" NOLOGIN;
+GRANT USAGE ON SCHEMA public TO \"system:serviceaccount:psql-repl:dbreader\";
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO \"system:serviceaccount:psql-repl:dbreader\";
+GRANT \"system:serviceaccount:psql-repl:dbreader\" TO myuser;
 "
 ```
 
-This creates a role `dbreader` with read-only access to all tables in the public schema.
+This creates a role matching the full service account name from the JWT's `sub` claim.
 
 ### 2. Service Account Creation
 
@@ -42,7 +42,7 @@ oc new-app docker.io/postgrest/postgrest \
   -e PGRST_SERVER_HOST="0.0.0.0" \
   -e PGRST_SERVER_PORT="3000" \
   -e PGRST_JWT_SECRET="$(oc get --raw /openid/v1/jwks)" \
-  -e PGRST_JWT_ROLE_CLAIM_KEY=".\"kubernetes.io\".serviceaccount.name" \
+  -e PGRST_JWT_ROLE_CLAIM_KEY=".sub" \
   -e PGRST_DB_POOL="10" \
   -e PGRST_DB_POOL_TIMEOUT="10" \
   -e PGRST_DB_MAX_ROWS="1000" \
@@ -51,7 +51,7 @@ oc new-app docker.io/postgrest/postgrest \
 
 Key configuration parameters:
 - `PGRST_JWT_SECRET`: Uses Kubernetes JWKS endpoint for JWT validation
-- `PGRST_JWT_ROLE_CLAIM_KEY`: Maps the service account name from the JWT to PostgreSQL role
+- `PGRST_JWT_ROLE_CLAIM_KEY`: Maps the JWT's `sub` claim (full service account name) to PostgreSQL role
 - `PGRST_DB_URI`: Configures connection to both primary and replica with read-only preference
 
 ### 4. Create Route
@@ -78,10 +78,13 @@ curl -k "https://${POSTGREST_HOST}/sample_table" \
 ### How it Works
 
 1. The client requests a token for the service account (`dbreader`)
-2. The token contains the service account name in its claims
-3. PostgREST validates the token using Kubernetes JWKS
-4. PostgREST extracts the service account name using `PGRST_JWT_ROLE_CLAIM_KEY`
-5. PostgREST connects to PostgreSQL assuming the matching role
+2. The token contains:
+   - Full service account name in `sub` claim as `system:serviceaccount:psql-repl:dbreader`
+   - Standard Kubernetes claims for authentication
+3. PostgREST validates:
+   - Token signature using Kubernetes JWKS
+4. PostgREST extracts the full service account name from the `sub` claim
+5. PostgREST connects to PostgreSQL using the matching role name
 6. PostgreSQL permissions are enforced based on the role grants
 
 This setup provides secure, OAuth-based authentication while maintaining PostgreSQL's role-based access control.
