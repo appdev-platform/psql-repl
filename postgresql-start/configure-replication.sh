@@ -71,11 +71,11 @@ else
         echo "${POSTGRESQL_PRIMARY_HOST}:5432:*:${POSTGRESQL_REPLICATION_USER}:${POSTGRESQL_REPLICATION_PASSWORD}" > "$PGPASSFILE"
         chmod 600 "$PGPASSFILE"
         
-        # Perform base backup
+        # Perform base backup without -R since S2I will restart anyway
         pg_basebackup -h ${POSTGRESQL_PRIMARY_HOST} \
                      -D ${PGDATA} \
                      -U ${POSTGRESQL_REPLICATION_USER} \
-                     -P -v -R \
+                     -P -v \
                      -X stream \
                      -S replica_1_slot
         
@@ -91,11 +91,9 @@ primary_slot_name = 'replica_1_slot'
 EOF
     echo "Streaming replication configured"
     
-    # Create standby signal file if it doesn't exist
-    if [ ! -f "${PGDATA}/standby.signal" ]; then
-        echo "Creating standby.signal file..."
-        touch "${PGDATA}/standby.signal"
-    fi
+    # Create standby signal file
+    echo "Creating standby.signal file..."
+    touch "${PGDATA}/standby.signal"
     
     echo "=== Replica configuration completed successfully ==="
 fi 
