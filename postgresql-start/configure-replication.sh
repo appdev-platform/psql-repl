@@ -53,47 +53,5 @@ EOSQL
     
     echo "=== Primary node configuration completed successfully ==="
 else
-    echo "Configuring replica node..."
-
-    if [ ! -f "${PGDATA}/standby.signal" ]; then
-        echo "No standby.signal found, performing initial backup..."
-        
-        # Backup existing data directory if it exists
-        if [ -d "${PGDATA}" ]; then
-            mv ${PGDATA} ${PGDATA}.bak.$(date +%Y%m%d_%H%M%S)
-        fi
-        
-        # Create fresh directory
-        mkdir -p ${PGDATA}
-        
-        # Create password file for pg_basebackup
-        export PGPASSFILE=$(mktemp)
-        echo "${POSTGRESQL_PRIMARY_HOST}:5432:*:${POSTGRESQL_REPLICATION_USER}:${POSTGRESQL_REPLICATION_PASSWORD}" > "$PGPASSFILE"
-        chmod 600 "$PGPASSFILE"
-        
-        # Perform base backup without -R since S2I will restart anyway
-        pg_basebackup -h ${POSTGRESQL_PRIMARY_HOST} \
-                     -D ${PGDATA} \
-                     -U ${POSTGRESQL_REPLICATION_USER} \
-                     -P -v \
-                     -X stream \
-                     -S replica_1_slot
-        
-        # Clean up password file
-        rm -f "$PGPASSFILE"
-    fi
-
-    # Configure streaming replication
-    echo "Configuring streaming replication..."
-    cat >> "${PGDATA}/postgresql.auto.conf" << EOF
-primary_conninfo = 'host=${POSTGRESQL_PRIMARY_HOST} port=5432 user=${POSTGRESQL_REPLICATION_USER} password=${POSTGRESQL_REPLICATION_PASSWORD} application_name=replica_1'
-primary_slot_name = 'replica_1_slot'
-EOF
-    echo "Streaming replication configured"
-    
-    # Create standby signal file
-    echo "Creating standby.signal file..."
-    touch "${PGDATA}/standby.signal"
-    
-    echo "=== Replica configuration completed successfully ==="
+    echo "=== Replica node already configured ==="
 fi 
