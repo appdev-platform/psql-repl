@@ -280,3 +280,38 @@ cat $PGDATA/postgresql.auto.conf
 - [PostgREST Documentation](https://postgrest.org/en/stable/references/api.html) - For REST API access to PostgreSQL
 + 
 + See [POSTGREST.md](POSTGREST.md) for instructions on setting up PostgREST with this replication configuration.
+
+## Quick Commands (Makefile)
+
+A Makefile is provided for common operations. Use `make help` to see all available commands.
+
+```bash
+# Deploy everything
+make deploy-all
+
+# Verify replication status
+make verify
+
+# Create test data
+make create-test-data
+
+# Promote replica to primary
+make promote-replica
+
+# Clean up everything
+make clean-all
+```
+
+Common commands:
+- `make deploy-primary` - Deploy primary instance
+- `make deploy-replica` - Deploy replica instance
+- `make deploy-postgrest` - Deploy PostgREST API
+- `make set-readonly` - Set replica to read-only mode
+- `make verify` - Check replication status
+- `make clean-all` - Remove all components
+
+Variables can be overridden:
+```bash
+# Example: Deploy with custom passwords
+make deploy-all DB_PASSWORD=custom123 REPL_PASSWORD=repl123
+```
