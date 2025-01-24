@@ -35,9 +35,17 @@ configure_primary() {
 configure_replica() {
     log "=== Configuring replica node ==="
     
+    # Create password file for replication connection
+    export PGPASSFILE=$(mktemp)
+    echo "${POSTGRESQL_PRIMARY_HOST}:5432:*:${POSTGRESQL_REPLICATION_USER}:${POSTGRESQL_REPLICATION_PASSWORD}" > "$PGPASSFILE"
+    chmod 600 "$PGPASSFILE"
+    
     # Get primary's system identifier
     PRIMARY_SYSTEM_ID=$(psql -h ${POSTGRESQL_PRIMARY_HOST} -U ${POSTGRESQL_REPLICATION_USER} -d postgres -tAc "SELECT system_identifier FROM pg_control_system()")
     log "Primary system identifier: ${PRIMARY_SYSTEM_ID}"
+    
+    # Clean up password file
+    rm -f "$PGPASSFILE"
     
     # Set up replication configuration
     touch "${PGDATA}/standby.signal"
