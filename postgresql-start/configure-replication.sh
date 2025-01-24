@@ -55,6 +55,37 @@ EOSQL
 else
     echo "Configuring replica node..."
 
+    if [ ! -f "${PGDATA}/standby.signal" ]; then
+        echo "No standby.signal found, performing initial backup..."
+        
+        # Stop PostgreSQL if running
+        pg_ctl -D ${PGDATA} stop || true
+        
+        # Backup existing data directory if it exists
+        if [ -d "${PGDATA}" ]; then
+            mv ${PGDATA} ${PGDATA}.bak.$(date +%Y%m%d_%H%M%S)
+        fi
+        
+        # Create fresh directory
+        mkdir -p ${PGDATA}
+        
+        # Create password file for pg_basebackup
+        export PGPASSFILE=$(mktemp)
+        echo "${POSTGRESQL_PRIMARY_HOST}:5432:*:${POSTGRESQL_REPLICATION_USER}:${POSTGRESQL_REPLICATION_PASSWORD}" > "$PGPASSFILE"
+        chmod 600 "$PGPASSFILE"
+        
+        # Perform base backup
+        pg_basebackup -h ${POSTGRESQL_PRIMARY_HOST} \
+                     -D ${PGDATA} \
+                     -U ${POSTGRESQL_REPLICATION_USER} \
+                     -P -v -R \
+                     -X stream \
+                     -S replica_1_slot
+        
+        # Clean up password file
+        rm -f "$PGPASSFILE"
+    fi
+
     # Configure streaming replication
     echo "Configuring streaming replication..."
     cat >> "${PGDATA}/postgresql.auto.conf" << EOF
