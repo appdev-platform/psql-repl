@@ -12,13 +12,6 @@ echo "Running as primary: ${IS_PRIMARY}"
 if [ "${IS_PRIMARY}" = "true" ]; then
     echo "=== Configuring primary node ==="
     
-    echo "Waiting for PostgreSQL to be ready..."
-    until pg_isready; do
-        echo "PostgreSQL is not ready yet... waiting"
-        sleep 2
-    done
-    echo "PostgreSQL is ready"
-    
     # Configure pg_hba.conf for replication
     if [ -f "${PGDATA}/pg_hba.conf" ]; then
         echo "Configuring pg_hba.conf..."
@@ -60,5 +53,21 @@ EOSQL
     
     echo "=== Primary node configuration completed successfully ==="
 else
-    echo "Running as replica node, skipping primary configuration"
+    echo "Configuring replica node..."
+
+    # Configure streaming replication
+    echo "Configuring streaming replication..."
+    cat >> "${PGDATA}/postgresql.auto.conf" << EOF
+primary_conninfo = 'host=${POSTGRESQL_PRIMARY_HOST} port=5432 user=${POSTGRESQL_REPLICATION_USER} password=${POSTGRESQL_REPLICATION_PASSWORD} application_name=replica_1'
+primary_slot_name = 'replica_1_slot'
+EOF
+    echo "Streaming replication configured"
+    
+    # Create standby signal file if it doesn't exist
+    if [ ! -f "${PGDATA}/standby.signal" ]; then
+        echo "Creating standby.signal file..."
+        touch "${PGDATA}/standby.signal"
+    fi
+    
+    echo "=== Replica configuration completed successfully ==="
 fi 
