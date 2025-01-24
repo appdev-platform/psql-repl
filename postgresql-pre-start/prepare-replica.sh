@@ -26,9 +26,8 @@ if [ "${IS_PRIMARY}" = "false" ]; then
         mv ${PGDATA} ${PGDATA}.bak.$(date +%Y%m%d_%H%M%S)
     fi
     
-    # Create fresh directory
-    mkdir -p ${PGDATA}
-    chmod 700 ${PGDATA}
+    # Create fresh directory with correct permissions
+    install -d -m 700 -o postgres -g postgres ${PGDATA}
     
     # Create password file for pg_basebackup
     export PGPASSFILE=$(mktemp)
@@ -56,11 +55,6 @@ EOF
     # Create standby signal file
     echo "Creating standby.signal file..."
     touch "${PGDATA}/standby.signal"
-    
-    # Set correct permissions on PGDATA
-    echo "Setting correct permissions..."
-    chmod 700 ${PGDATA}
-    chown -R postgres:postgres ${PGDATA}
     
     echo "=== Replica preparation completed successfully ==="
 else
