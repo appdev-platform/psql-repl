@@ -58,9 +58,6 @@ else
     if [ ! -f "${PGDATA}/standby.signal" ]; then
         echo "No standby.signal found, performing initial backup..."
         
-        # Stop PostgreSQL if running
-        pg_ctl -D ${PGDATA} stop || true
-        
         # Backup existing data directory if it exists
         if [ -d "${PGDATA}" ]; then
             mv ${PGDATA} ${PGDATA}.bak.$(date +%Y%m%d_%H%M%S)
