@@ -40,20 +40,23 @@ configure_replica() {
     echo "${POSTGRESQL_PRIMARY_HOST}:5432:*:${POSTGRESQL_REPLICATION_USER}:${POSTGRESQL_REPLICATION_PASSWORD}" > "$PGPASSFILE"
     chmod 600 "$PGPASSFILE"
     
-    # Get primary's system identifier
-    PRIMARY_SYSTEM_ID=$(psql -h ${POSTGRESQL_PRIMARY_HOST} -U ${POSTGRESQL_REPLICATION_USER} -d postgres -tAc "SELECT system_identifier FROM pg_control_system()")
-    log "Primary system identifier: ${PRIMARY_SYSTEM_ID}"
+    # Backup existing data directory if it exists
+    if [ -d "${PGDATA}" ]; then
+        rm -rf "${PGDATA}"
+    fi
+    
+    # Take base backup from primary
+    log "Taking base backup from primary..."
+    pg_basebackup -h ${POSTGRESQL_PRIMARY_HOST} \
+                 -D ${PGDATA} \
+                 -U ${POSTGRESQL_REPLICATION_USER} \
+                 -X stream \
+                 -v -P \
+                 -R \
+                 -S replica_1_slot
     
     # Clean up password file
     rm -f "$PGPASSFILE"
-    
-    # Set up replication configuration
-    touch "${PGDATA}/standby.signal"
-    cat > "${PGDATA}/postgresql.auto.conf" << EOF
-primary_conninfo = 'host=${POSTGRESQL_PRIMARY_HOST} port=5432 user=${POSTGRESQL_REPLICATION_USER} password=${POSTGRESQL_REPLICATION_PASSWORD} application_name=replica_1'
-primary_slot_name = 'replica_1_slot'
-system_identifier = '${PRIMARY_SYSTEM_ID}'
-EOF
     
     log "Replica configuration completed"
 }
