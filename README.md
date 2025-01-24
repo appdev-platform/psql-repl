@@ -272,15 +272,6 @@ cat $PGDATA/postgresql.auto.conf
     └── configure-replication.sh  # Primary configuration script
 ```
 
-## References
-
-- [PostgreSQL 16 Replication Documentation](https://www.postgresql.org/docs/16/high-availability.html)
-- [Red Hat PostgreSQL Container](https://catalog.redhat.com/software/containers/rhel9/postgresql-16/657b03866783e1b1fb87e142)
-- [OpenShift Container Platform Documentation](https://docs.openshift.com/)
-- [PostgREST Documentation](https://postgrest.org/en/stable/references/api.html) - For REST API access to PostgreSQL
-+ 
-+ See [POSTGREST.md](POSTGREST.md) for instructions on setting up PostgREST with this replication configuration.
-
 ## Quick Commands (Makefile)
 
 A Makefile is provided for common operations. Use `make help` to see all available commands.
@@ -315,3 +306,12 @@ Variables can be overridden:
 # Example: Deploy with custom passwords
 make deploy-all DB_PASSWORD=custom123 REPL_PASSWORD=repl123
 ```
+
+## References
+
+- [PostgreSQL 16 Replication Documentation](https://www.postgresql.org/docs/16/high-availability.html)
+- [Red Hat PostgreSQL Container](https://catalog.redhat.com/software/containers/rhel9/postgresql-16/657b03866783e1b1fb87e142)
+- [OpenShift Container Platform Documentation](https://docs.openshift.com/)
+- [PostgREST Documentation](https://postgrest.org/en/stable/references/api.html) - For REST API access to PostgreSQL
+
+See [POSTGREST.md](POSTGREST.md) for instructions on setting up PostgREST with this replication configuration.
