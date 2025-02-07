@@ -14,8 +14,7 @@ First, create a PostgreSQL role that matches your service account's full name fr
 # Connect to primary and create the database role
 oc rsh deployment/postgres-primary psql -U postgres -d mydatabase -c "
 CREATE ROLE \"system:serviceaccount:psql-repl:dbreader\" NOLOGIN;
-GRANT USAGE ON SCHEMA public TO \"system:serviceaccount:psql-repl:dbreader\";
-GRANT SELECT ON ALL TABLES IN SCHEMA public TO \"system:serviceaccount:psql-repl:dbreader\";
+GRANT SELECT ON TABLE sample_table TO "system:serviceaccount:psql-repl:dbreader";
 GRANT \"system:serviceaccount:psql-repl:dbreader\" TO myuser;
 "
 ```
