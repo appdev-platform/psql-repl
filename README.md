@@ -14,6 +14,8 @@ This configuration is intended for Proof of Concept (POC) and learning purposes 
 
 ### 1. Deploy Primary Instance
 ```bash
+# Create new project
+oc new-project psql-repl
 # Deploy primary PostgreSQL
 oc new-app registry.redhat.io/rhel9/postgresql-16~https://github.com/fjcloud/psql-repl.git \
   --name=postgres-primary \
