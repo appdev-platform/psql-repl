@@ -43,9 +43,9 @@ EOSQL
     
     # Create replication slot if it doesn't exist
     echo "Checking for replication slot..."
-    if ! psql -U postgres -tAc "SELECT 1 FROM pg_replication_slots WHERE slot_name='replica_1_slot'" | grep -q 1; then
-        echo "Creating replication slot: replica_1_slot"
-        psql -U postgres -c "SELECT pg_create_physical_replication_slot('replica_1_slot');"
+    if ! psql -U postgres -tAc "SELECT 1 FROM pg_replication_slots WHERE slot_name='replica_0_slot'" | grep -q 1; then
+        echo "Creating replication slot: replica_0_slot"
+        psql -U postgres -c "SELECT pg_create_physical_replication_slot('replica_0_slot');"
         echo "Replication slot created successfully"
     else
         echo "Replication slot already exists"
