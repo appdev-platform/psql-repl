@@ -10,6 +10,10 @@ POSTGRESQL_REPLICATION_USER=${POSTGRESQL_REPLICATION_USER:-replicator}
 echo "Running as primary: ${IS_PRIMARY}"
 
 if [ "${IS_PRIMARY}" = "true" ]; then
+
+    echo "Ensuring role permissions for ${POSTGRESQL_USER}..."
+    psql -U postgres -c "ALTER ROLE ${POSTGRESQL_USER} CREATEDB CREATEROLE;" || echo "⚠️ Failed to alter role ${POSTGRESQL_USER}" 
+
     echo "=== Configuring primary node ==="
     
     # Configure pg_hba.conf for replication
